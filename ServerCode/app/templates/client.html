@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+<!-- Controller fori the robot-->
+{% block js %}
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    
+   <script type="text/javascript" charset="utf-8">
+        $(document).ready(function(){
+            var socket = io.connect("http://192.168.1.252:80");
+            var username = '{{ username }}';
+            var password_hash = '{{ password_hash }}';
+            $(".slider").prop("disabled",true);
+
+            /* Descriptions: On connect the server will return a the username(string)*/
+            socket.on('connect', function(){
+                console.log("connected");
+                console.log(socket.id);
+            });
+            socket.on('disconnect', function(){
+                console.log("disconnected");
+                socket.disconnect();
+                return false;
+            });
+            socket.on("join room", function(){
+                socket.emit('connect client',{'username':username, 'password_hash': password_hash});
+                return false;
+            });
+
+            /*Description: sends messages to robot*/
+            $("#send_msg").on('click', ()=>{
+                // socket.emit('message', {'msg': $("#msg").val()});
+                socket.emit('message', $("#msg").val());
+                return false;
+            });
+            $("#remove_room").on('click', ()=>{
+                socket.emit('remove room');
+                return false;
+            })
+
+            socket.on('message', function(msg){
+                $(".scroller").append("<p>"+msg+"</p>");
+            });
+
+
+                        
+
+        });
+            
+    </script>
+
+{% endblock js %}
+{% block content %}
+    <style>
+        .scroller {
+            width: 300px;
+            height: 100px;
+            overflow-y: scroll;
+            scrollbar-color: rebeccapurple green;
+            scrollbar-width: thin;
+        }
+    </style>
+    <form>
+        <input type="text" id="msg">
+        <button id="send_msg">send message to bot</button>
+        <button id="remove_room">remove room and disconnect bots</button>
+        <div class="scroller" >
+        </div>
+
+    </form>
+
+{% endblock content %}
